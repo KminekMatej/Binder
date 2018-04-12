@@ -345,6 +345,11 @@ Binder.prototype.getValue = function(element){
 
 Binder.prototype.parseNameFromElement = function (element){
     var binderObj = this;
+    
+    if(typeof(element.attr(binderObj.DBFIELD_NAME_ATTRIBUTE)) == "undefined"){
+        throw "Binder error - element monitored by Binder doesn't have attribute " + binderObj.DBFIELD_NAME_ATTRIBUTE + " with the field name!";
+    }
+    
     var bracketBegin = element.attr(binderObj.DBFIELD_NAME_ATTRIBUTE).indexOf("[");
     if(bracketBegin == -1){
         return element.attr(binderObj.DBFIELD_NAME_ATTRIBUTE);
