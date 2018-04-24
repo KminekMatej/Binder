@@ -67,21 +67,31 @@ Binder.prototype.bindChangeEvents = function () {
             if ($(this).prop("tagName") === "BUTTON") {
                 $(this).off("click");
                 $(this).click(function(){
-                    binderObj.getChanges();
-                    binderObj.changeSaveButtonClass(binderObj.changed);
-                    binderObj.changeSaveAllButtonClass(binderObj.changed);
+                    binderObj.fireClick();
                 });
             } else {
                 $(this).off("change");
                 $(this).change(function(){
-                    binderObj.getChanges();
-                    binderObj.changeSaveButtonClass(binderObj.changed);
-                    binderObj.changeSaveAllButtonClass(binderObj.changed);
+                    binderObj.fireChange();
                 });
             }
         });
     }
 };
+
+Binder.prototype.fireClick = function () {
+    var binderObj = this;
+    binderObj.getChanges();
+    binderObj.changeSaveButtonClass(binderObj.changed);
+    binderObj.changeSaveAllButtonClass(binderObj.changed);
+}
+
+Binder.prototype.fireChange = function () {
+    var binderObj = this;
+    binderObj.getChanges();
+    binderObj.changeSaveButtonClass(binderObj.changed);
+    binderObj.changeSaveAllButtonClass(binderObj.changed);
+}
 
 Binder.prototype.bindSaveEvent = function () {
     var binderObj = this;
