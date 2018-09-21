@@ -37,6 +37,8 @@ function Binder (settings) {
     this.DELETE_BTN_CLASS = !settings.deleteBtnClass ? "binder-delete-btn" : settings.deleteBtnClass;
     this.BUTTON_CHECKED_CLASS = !settings.checkedBtnClass ? "active" : settings.checkedBtnClass;
     this.SAVE_ALL_BTN_CLASS = !settings.saveAllSelector ? "binder-save-all-btn" : settings.saveAllSelector;
+    this.CHECKBOX_CHECKED = !settings.checkboxValueChecked ? "true" : settings.checkboxValueChecked;
+    this.CHECKBOX_UNCHECKED = !settings.checkboxValueUnChecked ? "false" : settings.checkboxValueUnChecked;
     this.saveButtons = this.area.find("." + this.SAVE_BTN_CLASS);
     this.saveAllButtons = $("." + this.SAVE_ALL_BTN_CLASS);
     this.isValid = !settings.isValid ? true : settings.isValid;
@@ -392,7 +394,7 @@ Binder.prototype.parseValueFromGroupOfElements = function (element) {
 };
 
 Binder.prototype.parseValueFromElement = function(element){
-    if(element.is(":checkbox")) return element.is(":checked") ? "true" : "false";
+    if(element.is(":checkbox")) return element.is(":checked") ? this.CHECKBOX_CHECKED : this.CHECKBOX_UNCHECKED;
     if(element.prop("tagName") == "BUTTON") return element.hasClass(this.BUTTON_CHECKED_CLASS);
     return element.val();
 }
