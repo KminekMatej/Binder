@@ -35,6 +35,7 @@ function Binder (settings) {
     this.SPINNER_CLASS = !settings.spinClass ? "fa-spin" : settings.spinClass;
     this.SAVE_BTN_CLASS = !settings.saveBtnClass ? "binder-save-btn" : settings.saveBtnClass;
     this.DELETE_BTN_CLASS = !settings.deleteBtnClass ? "binder-delete-btn" : settings.deleteBtnClass;
+    this.DELETE_CONFIRM = !settings.deleteConfirmation ? false : settings.deleteConfirmation;
     this.BUTTON_CHECKED_CLASS = !settings.checkedBtnClass ? "active" : settings.checkedBtnClass;
     this.SAVE_ALL_BTN_CLASS = !settings.saveAllSelector ? "binder-save-all-btn" : settings.saveAllSelector;
     this.CHECKBOX_CHECKED = !settings.checkboxValueChecked ? "true" : settings.checkboxValueChecked;
@@ -99,11 +100,25 @@ Binder.prototype.bindSaveEvent = function () {
     var binderObj = this;
     if (this.saveButtons.length > 0) {
         this.saveButtons.each(function () {
-            $(this).off("click");
-            $(this).click(function () {
-                binderObj.extractBind();
-                binderObj.save($(this));
-            });
+            var tagName = $(this).prop("tagName");
+            if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tagName) > -1){
+                //PERFORM BIND TO BLUR EVENT
+                $(this).off("blur");
+                $(this).blur(function () {
+                    binderObj.extractBind();
+                    binderObj.save($(this));
+                });
+            } else {
+                //PERFORM BIND TO CLICK EVENT
+                $(this).off("click");
+                $(this).click(function () {
+                    binderObj.extractBind();
+                    binderObj.save($(this));
+                });
+            }
+                
+                
+            
         });
     }
 };
@@ -134,6 +149,8 @@ Binder.prototype.bindDeleteEvent = function () {
             $(this).off("click");
             $(this).click(function () {
                 binderObj.extractBind();
+                if(this.DELETE_CONFIRM && window.confirm(this.DELETE_CONFIRM) === false)
+                    return;
                 binderObj.delete($(this));
             });
         });
@@ -258,23 +275,27 @@ Binder.prototype.getButtonClass = function(button){
     return detectedClass;
 }
 
-Binder.prototype.changeSaveButtonClass = function (commitPending){
+Binder.prototype.changeSaveButtonClass = function (commitPending) {
     var binderObj = this;
     var targets = binderObj.saveButtons;
     var cls, newCls;
     if (targets.length > 0) {
         targets.each(function () {
             cls = binderObj.getButtonClass($(this));
-            var isOutlined = cls.indexOf("btn-outline") !== -1;
-            if (commitPending) {
-                if(isOutlined) return;
-                newCls = cls.replace("btn", "btn-outline");
-            } else {
-                if(!isOutlined) return;
-                newCls = cls.replace("btn-outline", "btn");
+            if (cls) {
+                var isOutlined = cls.indexOf("btn-outline") !== -1;
+                if (commitPending) {
+                    if (isOutlined)
+                        return;
+                    newCls = cls.replace("btn", "btn-outline");
+                } else {
+                    if (!isOutlined)
+                        return;
+                    newCls = cls.replace("btn-outline", "btn");
+                }
+                $(this).removeClass(cls);
+                $(this).addClass(newCls);
             }
-            $(this).removeClass(cls);
-            $(this).addClass(newCls);
         });
     }
 };
