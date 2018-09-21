@@ -149,7 +149,7 @@ Binder.prototype.bindDeleteEvent = function () {
             $(this).off("click");
             $(this).click(function () {
                 binderObj.extractBind();
-                if(this.DELETE_CONFIRM && window.confirm(this.DELETE_CONFIRM) === false)
+                if(binderObj.DELETE_CONFIRM && window.confirm(binderObj.DELETE_CONFIRM) === false)
                     return;
                 binderObj.delete($(this));
             });
