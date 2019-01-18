@@ -38,8 +38,6 @@ function Binder (settings) {
     this.DELETE_CONFIRM = !settings.deleteConfirmation ? false : settings.deleteConfirmation;
     this.BUTTON_CHECKED_CLASS = !settings.checkedBtnClass ? "active" : settings.checkedBtnClass;
     this.SAVE_ALL_BTN_CLASS = !settings.saveAllSelector ? "binder-save-all-btn" : settings.saveAllSelector;
-    this.CHECKBOX_CHECKED = !settings.checkboxValueChecked ? "true" : settings.checkboxValueChecked;
-    this.CHECKBOX_UNCHECKED = !settings.checkboxValueUnChecked ? "false" : settings.checkboxValueUnChecked;
     this.saveButtons = this.area.find("." + this.SAVE_BTN_CLASS);
     this.saveAllButtons = $("." + this.SAVE_ALL_BTN_CLASS);
     this.isValid = !settings.isValid ? true : settings.isValid;
@@ -123,6 +121,21 @@ Binder.prototype.bindSaveEvent = function () {
     }
 };
 
+Binder.prototype.unbindSaveEvent = function () {
+    if (this.saveButtons.length > 0) {
+        this.saveButtons.each(function () {
+            var tagName = $(this).prop("tagName");
+            if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tagName) > -1){
+                //UNBIND BLUR EVENT
+                $(this).off("blur");
+            } else {
+                //UNBIND CLICK EVENT
+                $(this).off("click");
+            }
+        });
+    }
+};
+
 Binder.prototype.bindSaveAllEvent = function () {
     var binderObj = this;
     if (this.saveAllButtons.length > 0) {
@@ -141,6 +154,25 @@ Binder.prototype.bindSaveAllEvent = function () {
     }
 };
 
+Binder.prototype.unbindSaveAllEvent = function () {
+    var binderObj = this;
+    if (this.saveAllButtons.length > 0) {
+        this.saveAllButtons.each(function () {
+            var allAttachedBinders = $(this).data("binders");
+            for (var i = 0; i < allAttachedBinders.length; i++) {
+                if (allAttachedBinders[i] === binderObj) {
+                    allAttachedBinders.splice(i, 1);
+                    break;
+                }
+            }
+            if(allAttachedBinders.length == 0){
+                $(this).removeData("binders");
+                $(this).off("click");
+            }
+        });
+    }
+};
+
 Binder.prototype.bindDeleteEvent = function () {
     var binderObj = this;
     var targets = binderObj.area.find("." + this.DELETE_BTN_CLASS);
@@ -153,6 +185,16 @@ Binder.prototype.bindDeleteEvent = function () {
                     return;
                 binderObj.delete($(this));
             });
+        });
+    }
+};
+
+Binder.prototype.unbindDeleteEvent = function () {
+    var binderObj = this;
+    var targets = binderObj.area.find("." + this.DELETE_BTN_CLASS);
+    if (targets.length > 0) {
+        targets.each(function () {
+            $(this).off("click");
         });
     }
 };
@@ -413,18 +455,22 @@ Binder.prototype.parseValueFromGroupOfElements = function (element) {
                 values.push(value);
         });
     }
-    return values;
+    return values.length > 0 ? values : "";
 };
 
 Binder.prototype.parseValueFromElement = function(element){
-    if(element.is(":checkbox")) return element.is(":checked") ? this.CHECKBOX_CHECKED : this.CHECKBOX_UNCHECKED;
+    if(element.is(":checkbox")) return element.is(":checked");
     if(element.prop("tagName") == "BUTTON") return element.hasClass(this.BUTTON_CHECKED_CLASS);
     return element.val();
 }
 
 Binder.prototype.isChanged = function (element) {
     var binderObj = this;
-    var changed = element.attr(binderObj.ORIGINAL_VALUE_ATTRIBUTE) != this.getValue(element);
+    var originalValue = element.attr(binderObj.ORIGINAL_VALUE_ATTRIBUTE);
+    if(originalValue == "true") originalValue = true;
+    if(originalValue == "false") originalValue = false;
+    var newValue = this.getValue(element);
+    var changed = originalValue != newValue;
     if (changed) {
         var value2 = element.attr(binderObj.VALIDATION_FIELD2_ATTRIBUTE);
         if (typeof value2 !== typeof undefined && value2 !== false) {
@@ -470,3 +516,9 @@ Binder.prototype.validate = function(element, value2 = null) {
         element.removeClass("is-invalid");
     }
 };
+
+Binder.prototype.destroy = function(){
+    this.unbindDeleteEvent();
+    this.unbindSaveEvent();
+    this.unbindSaveAllEvent();
+}
